@@ -21,10 +21,6 @@ export default class FormDialog extends React.Component {
         });
     };
     handleRequestClose = () => {
-        this.setState({
-            passlabel: '',
-            password: '',
-        });
         this.props.closeModal();
     };
     handleRequestSave = () => {
@@ -34,10 +30,6 @@ export default class FormDialog extends React.Component {
             } else {
                 this.props.editPassword(this.state.passlabel, this.state.password, this.state.editIndex);
             }
-            this.setState({
-                passlabel: '',
-                password: '',
-            });
             this.props.closeModal();
         } else {
             this.setState({ error: 'Fields Must be filled =)))' });
@@ -45,17 +37,23 @@ export default class FormDialog extends React.Component {
     };
 
     componentWillReceiveProps(nextProps) {
-        let a = {}
+        let a = {};
         let combineNewState = {
             open: nextProps.open,
             mode: nextProps.mode,
             editIndex: nextProps.editIndex,
         };
-        if (nextProps.editIndex !== false) {
+        if (nextProps.editIndex !== false && nextProps.passwords.length) {
+            console.log(nextProps);
             a = {
                 passlabel: nextProps.passwords[nextProps.editIndex].name,
                 password: nextProps.passwords[nextProps.editIndex].password,
             };
+        } else {
+            a = {
+                passlabel: '',
+                password: '',
+            }
         }
         this.setState(Object.assign({}, combineNewState, a));
     };

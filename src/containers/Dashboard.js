@@ -8,11 +8,11 @@ import { withStyles } from 'material-ui/styles';
 import withWidth from 'material-ui/utils/withWidth';
 import compose from 'recompose/compose';
 import { connect } from 'react-redux';
-import UserBox from './UserBox';
+import UserBox from '../components/UserBox';
 import { bindActionCreators } from 'redux';
 import { getPasswords, removePassword, addPassword, editPassword } from '../actions/passwords';
 
-import FormDialog from './Dialog';
+import FormDialog from '../components/Dialog';
 
 const styles = theme => ({
     root: theme.root,
@@ -69,7 +69,7 @@ class Dashboard extends Component {
     }
     componentWillMount() {
         if (localStorage.passwords) {
-            this.props.getPasswords(localStorage.passwords);
+            this.props.getPasswords();
         }
     }
     componentWillReceiveProps(nextProps) {
@@ -90,52 +90,55 @@ class Dashboard extends Component {
         this.setState({ mode: 'edit', open: true, editIndex: event.target.parentNode.dataset.index});
     }
     showPassword(event) {
-        event.preventDefault();
         let target = event.target;
-        target.blur();
-        if(target.getAttribute('type') === 'text') {
-            target.setAttribute('type', 'password');
-        } else {
-            target.setAttribute('type', 'text');
-        }
+        target.getAttribute('type') === 'text' ? target.setAttribute('type', 'password') : target.setAttribute('type', 'text');
+    }
+    renderPasswords(passwords) {
+        return (
+            passwords.map((item, index) => {
+                const { name, password } = item;
+                const { passHolder, passName, passInput } = this.props.classes;
+                return (
+                    <div key={index} data-index={index} className={passHolder}>
+                        <p className={passName}>{name}</p>
+                        <input
+                            value={password}
+                            readOnly
+                            type="password"
+                            className={passInput}
+                            onClick={this.showPassword}
+                        />
+                        <Icon onClick={this.editPassword} color="primary">mode_edit</Icon>
+                        <Icon onClick={this.removePassword} color="error">delete</Icon>
+                    </div>
+                )
+            })
+        )
     }
     render() {
-        const {classes, login, passwords, addPassword, editPassword} = this.props;
+        const {login, passwords, addPassword, editPassword} = this.props;
         const {open, editIndex, mode} = this.state;
+        const {root, dashboardHead } = this.props.classes;
         return(
-            <div className={classes.root}>
+            <div className={root}>
                 <Paper>
                     {login.isLoggedIn ?
                         <Grid container>
                         <Grid item xs={8}>
-                            <div className={classes.dashboardHead}>
+                            <div className={dashboardHead}>
                                 <h1>Dashboard</h1>
                                 <Button onClick={this.addNewPassword} fab color="primary" aria-label="add">
                                     <AddIcon />
                                 </Button>
                             </div>
-                            {passwords.map((item, index) => {
-                                return (
-                                    <div key={index} data-index={index} className={classes.passHolder}>
-                                        <p className={classes.passName}>{item.name}</p>
-                                        <input
-                                            value={item.password}
-                                            readOnly
-                                            type="password"
-                                            className={classes.passInput}
-                                            onClick={this.showPassword}
-                                        />
-                                        <Icon onClick={this.editPassword} color="primary">mode_edit</Icon>
-                                        <Icon onClick={this.removePassword} color="error">delete</Icon>
-                                    </div>
-                                )
-                            })}
+                            {this.renderPasswords(passwords)}
                         </Grid>
                         <Grid item xs={4}><UserBox user={login}/></Grid>
                     </Grid>
 
                     : <h1>Dashboard</h1>}
                 </Paper>
+
                 <FormDialog
                     open={open}
                     editIndex={editIndex}
